@@ -1,0 +1,26 @@
+{
+  "skill_name": "mermaid-mindmap-fontawesome",
+  "evals": [
+    {
+      "id": "eval-pomodoro",
+      "prompt": "Tạo mindmap mermaid + fontawesome cho chủ đề 'Kỹ thuật Pomodoro', lưu vào Notes/Productivity/Pomodoro.md",
+      "expected_output": "A new markdown file with # title, ## MindMap section, FontAwesome CDN link, a mermaid mindmap code block with tidy-tree layout + themeVariables palette fitting an energetic/focus mood, root + several branches each with a meaningful ::icon(fa fa-...), sub-keywords nested under branches.",
+      "files": [],
+      "assertions": []
+    },
+    {
+      "id": "eval-design-patterns",
+      "prompt": "Build a mermaid mindmap with fontawesome icons for 'Design Patterns' (creational/structural/behavioral groups), save under IT_CS/Languages/DesignPatterns.md",
+      "expected_output": "A new markdown file with a mindmap whose top-level branches are Creational/Structural/Behavioral (or equivalent), each with a meaningful icon, example patterns nested as sub-keywords, a technical/neutral color palette.",
+      "files": [],
+      "assertions": []
+    },
+    {
+      "id": "eval-sleep-hygiene",
+      "prompt": "I want a memorable mindmap on 'Sleep Hygiene' habits for my notes vault, icons should help me remember each habit, save to Notes/Health/SleepHygiene.md",
+      "expected_output": "A new markdown file with a mindmap covering sleep hygiene habit categories, each branch/habit with a meaningful icon (e.g. bed, clock, sun/moon), calm color palette.",
+      "files": [],
+      "assertions": []
+    }
+  ]
+}
