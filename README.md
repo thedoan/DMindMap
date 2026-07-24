@@ -39,17 +39,20 @@ constraints found by testing real output against Mermaid (verified with
 ## Structure
 
 ```
-SKILL.md                        Entry point Claude Code loads
+SKILL.md                        Entry point Claude Code loads — workflow only
 references/
-  mindmap-template.md           Node syntax skeleton, shape/size rules,
-                                 Unicode/hyphen-safe quoting patterns
-  color-guide.md                Palette formula (mood → hue → contrast-safe
-                                 fill/text pairing)
-  icon-guide.md                 How to pick a meaningful icon, plus a
-                                 concept → FontAwesome class cheat sheet
+  reference.md                  Everything else, read once: node syntax
+                                 skeleton, verified pitfalls (shape/size
+                                 hierarchy, Unicode/hyphen-safe quoting,
+                                 no tidy-tree), color formula, icon-picking
+                                 guide + FontAwesome class cheat sheet
 evals/
   evals.json                    Test prompts used to validate the skill
 ```
+
+`SKILL.md` and `references/reference.md` used to be four separate files;
+they were consolidated to cut duplicated rationale and reduce the number of
+file reads needed per mindmap (~55% smaller overall, same rules).
 
 ## Install
 
