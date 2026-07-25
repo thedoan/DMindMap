@@ -1,7 +1,7 @@
 # Reference
 
 One file, read once. Covers: skeleton syntax, verified rendering pitfalls,
-color formula, icon picking.
+color formula, emoji picking.
 
 ## Skeleton
 
@@ -10,27 +10,36 @@ color formula, icon picking.
 
 ## MindMap
 
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet" />
-
 ```mermaid
 %%{ init: { 'theme': 'base', 'themeVariables': { 'primaryColor': '<hex>', 'primaryTextColor': '<hex>', 'secondaryColor': '<hex>', 'secondaryTextColor': '<hex>', 'tertiaryColor': '<hex>', 'tertiaryTextColor': '<hex>', 'mindmapRootColor': '<hex>', 'mindmapMainColor': '<hex>', 'mindmapSecondaryColor': '<hex>', 'mindmapTertiaryColor': '<hex>', 'mindmapTextColor': '#333333', 'mindmapLineColor': '<hex>' } } }%%
 mindmap
-  root(("`**<Topic Title>**`"))
-  ::icon(fa fa-<root-icon>)
-    (<Branch 1 keyword>)
-    ::icon(fa fa-<icon>)
-      <named leaf concept>
-      ::icon(fa fa-<icon>)
-      <generic descriptive leaf, no icon needed>
-    (<Branch 2 keyword>)
-    ::icon(fa fa-<icon>)
-      <named leaf concept>
-      ::icon(fa fa-<icon>)
+  root(("`**<emoji> <Topic Title>**`"))
+    ("`<emoji> <Branch 1 keyword>`")
+      ("`<emoji> <named leaf concept>`")
+      <generic descriptive leaf, no emoji needed, plain text>
+    ("`<emoji> <Branch 2 keyword>`")
+      ("`<emoji> <named leaf concept>`")
 ```
 ~~~
 
 No `## Reference`/source section unless there's a real link to add — don't
 invent one.
+
+## Why emoji, not FontAwesome `::icon()`
+
+This skill originally used `::icon(fa fa-name)` — the classic approach, and
+what Mermaid's own docs still describe. But direct testing found it
+doesn't actually work: rendering test files through mermaid 11.12 and
+11.16, in a real browser (Playwright, inspecting the live DOM), with the
+classic CSS-class syntax, the newer icon-pack system
+(`mermaid.registerIconPacks()`, both the `fa fa-name` and bare `fa name`
+forms), and `securityLevel: 'loose'` — every combination produced **zero**
+icon-related markup in the rendered SVG. Not a CORS issue, not a font
+issue, not a CSP issue: the renderer itself doesn't emit anything for
+`::icon()` on mindmap diagrams right now. That's a bug in mermaid, not a
+config problem on our end, so don't try to resurrect `::icon()` — use
+emoji in the label text instead, confirmed working the same way (rendered
+and visually verified via screenshot).
 
 ## Verified pitfalls (found by rendering real test files, not guessed)
 
@@ -50,34 +59,32 @@ choice:
 - Leaves: plain text, no shape — this is already the smallest, don't add a
   shape just for consistency.
 
-**Non-ASCII characters and hyphens break plain/unquoted node text** in
-Mermaid versions still common in markdown previewers (they lex unquoted
-text as ASCII-only, and hyphens have separately been observed to break the
-same unquoted path). Two fixes:
-- Reword to drop the hyphen when meaning survives ("Client specific
-  interfaces" not "Client-specific interfaces") — simplest, keeps the
-  node's natural shape.
-- Otherwise wrap in Mermaid's quoted markdown-string form, inside any
-  shape, id optional: `("`text`")`. This also fixes Vietnamese/CJK/any
-  non-ASCII label. Quoting works in every shape (circle/round/square), so
-  keep using the same root/branch/leaf shape hierarchy above even for
-  quoted nodes — a quoted round shape is still visually smaller than a
-  quoted square-bracket box.
+**Emoji, non-ASCII characters, and hyphens all break plain/unquoted node
+text** in Mermaid versions still common in markdown previewers (they lex
+unquoted text as ASCII-only, and hyphens have separately been observed to
+break the same unquoted path). Since almost every node now carries an
+emoji, quoting becomes the default for most labels:
+- Wrap in Mermaid's quoted markdown-string form, inside any shape, id
+  optional: `("`text`")`. Quoting works in every shape (circle/round/
+  square), so keep using the same root/branch/leaf shape hierarchy above
+  even for quoted nodes — a quoted round shape is still visually smaller
+  than a quoted square-bracket box.
+- A hyphen with no emoji can instead be reworded to drop it ("Client
+  specific interfaces" not "Client-specific interfaces") if that's simpler
+  than quoting — but once a node has an emoji, quote it, don't bother
+  trying to reword around the emoji.
 
-Only reword/quote the nodes that actually need it — leave safe ASCII
-labels in their normal unquoted style.
+Only quote the nodes that actually need it — a leaf with plain ASCII text
+and no emoji can stay in normal unquoted style.
 
 **Never split a label across two raw source lines**, even a long root
 title — Mermaid reads tree structure from each line's indentation, so a
 wrapped continuation line is misread as a new sibling/child. Shorten the
 wording instead.
 
-**`::icon(fa fa-name)`** goes on its own line immediately after the node it
-decorates, same indent as that node's continuation.
-
 **Branch fan-out ≤ ~6 direct children.** More than that (e.g. 11 items in
-one category) crowds nodes/icons until they visually overlap — split into
-named sub-groups instead of one flat list.
+one category) crowds nodes until they visually overlap — split into named
+sub-groups instead of one flat list.
 
 ## Optional contrast sub-pattern
 
@@ -85,17 +92,14 @@ When a branch splits into two opposing sides (High/Low, Pros/Cons,
 Before/After) — only when the topic genuinely has two poles, not forced:
 
 ```
-    (<Branch keyword>)
-    ::icon(fa fa-<branch icon>)
-      <Side A label>
-      ::icon(fa fa-plus)
+    ("`<emoji> <Branch keyword>`")
+      ("`➕ <Side A label>`")
         <example>
-      <Side B label>
-      ::icon(fa fa-minus)
+      ("`➖ <Side B label>`")
         <example>
 ```
 
-`fa-plus`/`fa-minus` read universally as "more of this"/"less of this".
+➕/➖ read universally as "more of this"/"less of this".
 
 ## Color palette formula
 
@@ -125,47 +129,42 @@ Keys needed (all hex): `primaryColor`, `primaryTextColor`,
 Generate a fresh ramp per topic — don't reuse a previous note's exact hex
 values unless the mood genuinely matches.
 
-## Picking icons
+## Picking emoji
 
 For each node that gets one, ask: what concrete object/action/symbol does
-this abstract idea bring to mind? Concrete keyword → its literal icon.
-Abstract → closest physical metaphor (growth → plant/rising arrow, risk →
-warning triangle, time → clock/hourglass, structure → checklist/blueprint).
-Prefer specific over generic ("curiosity" → magnifying glass, not a
-generic star). If two siblings end up with similar icons, at least one was
+this abstract idea bring to mind? Concrete keyword → its literal emoji.
+Abstract → closest physical metaphor (growth → 🌱📈, risk → ⚠️🛡️, time →
+⏰⏳, structure → ✅📋). Prefer specific over generic ("curiosity" → 🔍, not
+a generic ⭐). If two siblings end up with similar emoji, at least one was
 too generic — find something sharper.
 
-Only `fa-solid` (free) icons, `fa fa-<name>` form — no `fa-brands`/logos,
-no Pro-only icons (won't render with the free CDN link).
+Cheat sheet (not closed — pick a sharper one if it fits better):
 
-Cheat sheet (not closed — search
-https://fontawesome.com/search?o=r&s=solid&f=classic for anything else):
-
-| Concept | Icon class |
+| Concept | Emoji |
 |---|---|
-| Brain / cognition | `fa-brain` |
-| Growth / progress | `fa-seedling`, `fa-arrow-trend-up` |
-| Curiosity | `fa-magnifying-glass`, `fa-compass` |
-| Creativity | `fa-palette`, `fa-lightbulb` |
-| Discipline / structure | `fa-clipboard-check`, `fa-ruler` |
-| Goal / target | `fa-bullseye`, `fa-flag-checkered` |
-| Social / people | `fa-people-group`, `fa-handshake` |
-| Communication | `fa-comments`, `fa-message` |
-| Emotion | `fa-face-smile`, `fa-heart`, `fa-heart-crack` |
-| Trust / cooperation | `fa-handshake`, `fa-people-arrows` |
-| Competition / conflict | `fa-chess-knight`, `fa-fist-raised` |
-| Anxiety / stress | `fa-bolt`, `fa-triangle-exclamation` |
-| Calm / resilience | `fa-spa`, `fa-shield-heart` |
-| Time / schedule | `fa-clock`, `fa-hourglass-half` |
-| Habit / routine | `fa-repeat`, `fa-calendar-check` |
-| Risk / caution | `fa-triangle-exclamation`, `fa-shield` |
-| Energy | `fa-bolt`, `fa-fire` |
-| Rest / recovery | `fa-bed`, `fa-battery-full` |
-| Ranking / scale | `fa-ranking-star`, `fa-gauge` |
-| High / increase | `fa-plus`, `fa-arrow-up` |
-| Low / decrease | `fa-minus`, `fa-arrow-down` |
-| Code / logic | `fa-code`, `fa-diagram-project` |
-| Money / value | `fa-coins`, `fa-sack-dollar` |
-| Health / body | `fa-heart-pulse`, `fa-dumbbell` |
-| Decision / choice | `fa-code-fork`, `fa-signs-post` |
-| Learning | `fa-book-open`, `fa-graduation-cap` |
+| Brain / cognition | 🧠 |
+| Growth / progress | 🌱, 📈 |
+| Curiosity | 🔍, 🧭 |
+| Creativity | 🎨, 💡 |
+| Discipline / structure | ✅, 📏 |
+| Goal / target | 🎯, 🏁 |
+| Social / people | 👥, 🤝 |
+| Communication | 💬, 📢 |
+| Emotion | 😊, ❤️, 💔 |
+| Trust / cooperation | 🤝 |
+| Competition / conflict | ♟️, 👊 |
+| Anxiety / stress | ⚡, ⚠️ |
+| Calm / resilience | 🧘, 🛡️ |
+| Time / schedule | ⏰, ⏳ |
+| Habit / routine | 🔁, 📅 |
+| Risk / caution | ⚠️, 🛡️ |
+| Energy | ⚡, 🔥 |
+| Rest / recovery | 🛏️, 🔋 |
+| Ranking / scale | ⭐, 📊 |
+| Money / value | 💰, 🪙 |
+| Health / body | ❤️‍🩹, 💪 |
+| Decision / choice | 🔀, 🧭 |
+| Learning | 📖, 🎓 |
+| Food / diet | 🍽️, 🥗 |
+| Travel | ✈️, 🧳 |
+| Technology / code | 💻, 🔧 |
