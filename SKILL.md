@@ -1,5 +1,5 @@
 ---
-name: mermaid-mindmap-fontawesome
+name: dmindmap
 description: Generates a Mermaid mindmap decorated with emoji for any topic, where every branch keyword gets an emoji whose real-world meaning reinforces that keyword so the map is easier to memorize. Use whenever the user asks for a mindmap, mind map, concept map, or visual summary of a topic for their notes vault (Obsidian/markdown), asks to "turn X into a mindmap", wants icons/emoji next to mindmap nodes, or references an existing mindmap note (like an OCEAN/Big Five style file) as a pattern to follow for a new topic. Also trigger when the user wants a memorable/visual way to study or memorize a topic's structure.
 ---
 
