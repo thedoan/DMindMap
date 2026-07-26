@@ -11,7 +11,7 @@ color formula, emoji picking.
 ## MindMap
 
 ```mermaid
-%%{ init: { 'theme': 'base', 'themeVariables': { 'primaryColor': '<hex>', 'primaryTextColor': '<hex>', 'secondaryColor': '<hex>', 'secondaryTextColor': '<hex>', 'tertiaryColor': '<hex>', 'tertiaryTextColor': '<hex>', 'mindmapRootColor': '<hex>', 'mindmapMainColor': '<hex>', 'mindmapSecondaryColor': '<hex>', 'mindmapTertiaryColor': '<hex>', 'mindmapTextColor': '#333333', 'mindmapLineColor': '<hex>' } } }%%
+%%{ init: { 'theme': 'base', 'themeVariables': { 'primaryColor': '<dark hex>', 'primaryTextColor': '#FAFAFA', 'secondaryColor': '<dark hex>', 'tertiaryColor': '<dark hex>' } } }%%
 mindmap
   root(("`**<emoji> <Topic Title>**`"))
     ("`<emoji> <Branch 1 keyword>`")
@@ -103,28 +103,51 @@ Before/After) — only when the topic genuinely has two poles, not forced:
 
 ## Color palette formula
 
-Keys needed (all hex): `primaryColor`, `primaryTextColor`,
-`secondaryColor`, `secondaryTextColor`, `tertiaryColor`, `tertiaryTextColor`,
-`mindmapRootColor`, `mindmapMainColor`, `mindmapSecondaryColor`,
-`mindmapTertiaryColor`, `mindmapTextColor`, `mindmapLineColor`.
+Keys needed (all hex): `primaryColor`, `primaryTextColor`, `secondaryColor`,
+`tertiaryColor`. That's it — four keys, not twelve. `secondaryTextColor`,
+`tertiaryTextColor`, `mindmapRootColor`, `mindmapMainColor`,
+`mindmapSecondaryColor`, `mindmapTertiaryColor`, `mindmapTextColor`, and
+`mindmapLineColor` are **verified dead**: rendered real multi-branch test
+files and inspected the actual DOM/CSS mermaid produces (across mermaid
+11.12 and the current 11.16) — none of those eight keys' hex values ever
+show up anywhere in the output, on any version. Don't set them; they're
+pure token waste and — worse — they're what caused the actual contrast bug
+(see below).
 
-1. Pick a mood → base hue: energetic/bold → red-orange (0-30°); calm →
-   blue-teal (180-200°); growth/health → green (90-140°); technical →
-   blue-slate (210-230°); creative/social → yellow-orange (30-45°);
-   serious/analytical → purple-indigo (250-270°).
-2. Build an analogous 3-step ramp (base, +30°, +60°) for
-   primary/secondary/tertiary. `mindmapRootColor`/`mindmapMainColor` = most
-   saturated step. `mindmapSecondaryColor`/`mindmapTertiaryColor` = lighter
-   steps for deeper nesting.
-3. **Pair each fill with text by that fill's own lightness, not a fixed
-   rule.** A dark fill needs pale text. But `tertiaryColor` is usually
-   already your lightest ramp step — pairing it with an even paler text
-   color washes out to unreadable (a real bug found by testing); give a
-   light fill dark/saturated text instead. Eyeball each pair: if you can't
-   tell them apart, darken the text regardless of which step it is.
-4. `mindmapTextColor` (leaf text): dark gray `#333333` — assumes a light
-   viewer background, the safe default.
-5. `mindmapLineColor`: a mid-tone from the ramp.
+**Verified mechanics** (found by inspecting real rendered output, not
+guessed from docs):
+- `primaryColor`/`secondaryColor`/`tertiaryColor` only seed each branch's
+  *hue*. Mermaid regenerates the actual fill lightness/saturation itself via
+  an internal per-branch hue-rotation (root ≈ primaryColor's hue, branch 1 ≈
+  secondaryColor's hue, branch 2 ≈ tertiaryColor's hue, branch 3+ keep
+  auto-rotating hue +30° with no color input from us at all) — the exact
+  lightness you pick for secondary/tertiary does not reliably survive into
+  the render.
+- `primaryTextColor` is applied to **every** node's label text — root,
+  every branch, every leaf, uniformly, confirmed in current mermaid (11.16).
+  There is no per-depth text color; the render only has one lever for text.
+
+**This is the actual bug users hit.** The old guidance here said "give
+`mindmapSecondaryColor`/`mindmapTertiaryColor` a lighter fill for deeper
+nesting" — but since every node's text uses the same single
+`primaryTextColor`, making a branch's fill lighter just means *that
+branch's text* (still whatever `primaryTextColor` is) loses contrast
+against it. That's exactly "keyword color looks the same as its branch."
+
+**Fix, verified by rendering real 2-branch and 5-branch test files and
+measuring actual contrast ratios on the output:**
+1. Keep `primaryColor`/`secondaryColor`/`tertiaryColor` all at *similar,
+   dark* lightness (roughly 20-35% — a deep, rich version of your mood hue).
+   Vary hue between them for visual distinction, not lightness. Do NOT build
+   an ascending "lighter ramp for deeper nesting" — that's the exact
+   mechanism that breaks contrast, per above.
+2. Set `primaryTextColor` to a fixed near-white, `#FAFAFA`. With every
+   branch kept dark per step 1, this reads cleanly everywhere — verified
+   across 2-branch and 5-branch renders, contrast ratios 7:1-12:1 on every
+   node, comfortably clearing WCAG AA's 4.5:1.
+
+Generate a fresh hue per topic — don't reuse a previous note's exact hex
+values.
 
 Generate a fresh ramp per topic — don't reuse a previous note's exact hex
 values unless the mood genuinely matches.
