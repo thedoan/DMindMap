@@ -82,6 +82,16 @@ emoji, quoting becomes the default for most labels:
   square), so keep using the same root/branch/leaf shape hierarchy above
   even for quoted nodes — a quoted round shape is still visually smaller
   than a quoted square-bracket box.
+- **The parens are not optional, even for a leaf.** "Leaves: plain text,
+  no shape" above only applies to a plain, unquoted, no-emoji leaf. The
+  instant a leaf needs quoting, it needs the full `("`text`")` wrapper —
+  never drop the parens and leave a bare `"`text`"`. Confirmed by
+  rendering: mermaid doesn't recognize a bare quoted string as its
+  markdown-string node type at all, so it prints the literal `"` and
+  `` ` `` characters as visible text instead of parsing them — this is the
+  exact "nodes wrapped in backticks" bug seen in practice, and it showed up
+  specifically on deeper-nested leaves (level 3+), where it's easy to drop
+  the shape wrapper by mistake while still adding the quote/backtick pair.
 - A hyphen with no emoji can instead be reworded to drop it ("Client
   specific interfaces" not "Client-specific interfaces") if that's simpler
   than quoting — but once a node has an emoji, quote it, don't bother
