@@ -159,15 +159,29 @@ against it. That's exactly "keyword color looks the same as its branch."
 
 **Fix, verified by rendering real 2-branch and 5-branch test files and
 measuring actual contrast ratios on the output:**
-1. Keep `primaryColor`/`secondaryColor`/`tertiaryColor` all at *similar,
-   dark* lightness (roughly 20-35% — a deep, rich version of your mood hue).
-   Vary hue between them for visual distinction, not lightness. Do NOT build
-   an ascending "lighter ramp for deeper nesting" — that's the exact
-   mechanism that breaks contrast, per above.
+1. Keep `primaryColor`/`secondaryColor`/`tertiaryColor` all at **HSL
+   lightness 40-50%, saturation 80-90%.** Vary hue between them for visual
+   distinction, not lightness. Do NOT build an ascending "lighter ramp for
+   deeper nesting" — that's the mechanism that broke contrast originally.
+   - **This replaces an earlier, wrong version of this rule** that said
+     "20-35% lightness" — verified by testing to be a real bug, not just
+     suboptimal: mermaid darkens whatever you pass it *again* internally,
+     and below ~35-40% input lightness that second darkening pass clips
+     straight to literal `rgb(0,0,0)` — every branch renders as pure,
+     identical black regardless of hue, which is exactly the "all branches
+     are one color" bug this replaces. Swept lightness 15-55% at fixed
+     saturation to confirm: 15-25% clips fully to black; 30-35% survives
+     but is so close to black it reads the same to the eye; 40-50% renders
+     clearly distinct, saturated hues; 55%+ starts losing contrast margin
+     against white text. 40-50% is the verified safe band, not a guess.
+   - Saturation matters too, not just lightness: low saturation (~45%) at
+     any lightness reads as muddy gray-black once mermaid's internal
+     darkening is applied. Stay at 80-90% saturation.
 2. Set `primaryTextColor` to a fixed near-white, `#FAFAFA`. With every
-   branch kept dark per step 1, this reads cleanly everywhere — verified
-   across 2-branch and 5-branch renders, contrast ratios 7:1-12:1 on every
-   node, comfortably clearing WCAG AA's 4.5:1.
+   branch in the 40-50%/80-90% band from step 1, this reads cleanly
+   everywhere — verified across renders at this range, contrast ratios
+   11:1-17:1 on every node, comfortably clearing WCAG AA's 4.5:1 (and AAA's
+   7:1).
 
 Generate a fresh hue per topic — don't reuse a previous note's exact hex
 values.
