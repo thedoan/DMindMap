@@ -13,7 +13,7 @@ color formula, emoji picking.
 ```mermaid
 %%{ init: { 'theme': 'base', 'themeVariables': { 'primaryColor': '<dark hex>', 'primaryTextColor': '#FAFAFA', 'secondaryColor': '<dark hex>', 'tertiaryColor': '<dark hex>' } } }%%
 mindmap
-  root(("`**<emoji> <Topic Title>**`"))
+  root(("`<div style='font-size:2.2em;line-height:1.1'><emoji></div><b><Topic Title></b>`"))
     ("`<emoji> <Branch 1 keyword>`")
       ("`<emoji> <named leaf concept>`")
       <generic descriptive leaf, no emoji needed, plain text>
@@ -49,15 +49,28 @@ renderers don't ship with — hard syntax error outside a handful of
 environments that specifically register it. Plain `mindmap`, no layout
 override, renders everywhere.
 
-**Shape is the only size lever.** Mindmap has no font-size-per-depth
-setting. Measuring actual rendered SVG output: a double-paren circle ≈
-140-170px, a single-paren rounded box ≈ 170×54, a plain-text leaf smaller
-still. So root/branch/leaf visual hierarchy comes entirely from shape
-choice:
-- Root: circle + bold — `root(("`**Title**`"))`.
+**Shape is the main size lever, but root's emoji gets one exception.**
+Mindmap has no font-size-per-depth setting for node shapes themselves.
+Measuring actual rendered SVG output: a double-paren circle ≈ 140-170px, a
+single-paren rounded box ≈ 170×54, a plain-text leaf smaller still. So
+branch/leaf visual hierarchy comes from shape choice:
 - Branches: rounded box — `(Title)`.
 - Leaves: plain text, no shape — this is already the smallest, don't add a
   shape just for consistency.
+
+Root is the one place worth a real size boost, verified working: the
+quoted markdown-string form passes raw HTML through (mermaid's markdown-
+string nodes render via `marked`, which doesn't sanitize by default), so
+wrap root's emoji in a sized `<div>` on its own line, then bold the title
+with `<b>` — not markdown `**bold**`, which breaks (renders literal
+asterisks) once raw HTML is already in the same label, confirmed by
+rendering:
+```
+root(("`<div style='font-size:2.2em;line-height:1.1'>🔥</div><b>Personal Finance</b>`"))
+```
+This makes root's emoji large and stacked above the bold title — the most
+visually prominent node, as intended. Keep branches/leaves as plain inline
+`emoji + text` (no div, no size bump) — this treatment is for root only.
 
 **Emoji, non-ASCII characters, and hyphens all break plain/unquoted node
 text** in Mermaid versions still common in markdown previewers (they lex
