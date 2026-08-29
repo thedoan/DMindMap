@@ -13,11 +13,11 @@ color formula, emoji picking.
 ```mermaid
 %%{ init: { 'theme': 'base', 'themeVariables': { 'primaryColor': '<dark hex>', 'primaryTextColor': '#FAFAFA', 'secondaryColor': '<dark hex>', 'tertiaryColor': '<dark hex>' } } }%%
 mindmap
-  root(("`<div style='font-size:2.2em;line-height:1.1'><emoji></div><b><Topic Title></b>`"))
-    ("`<emoji> <Branch 1 keyword>`")
+  root(("`<div style='display:flex;flex-direction:column;align-items:center'><div style='font-size:3em;line-height:1.1'><emoji></div><b><TOPIC TITLE></b></div>`"))
+    ("`<div style='font-size:1.5em'><emoji></div> <BRANCH 1 KEYWORD>`")
       ("`<emoji> <named leaf concept>`")
       <generic descriptive leaf, no emoji needed, plain text>
-    ("`<emoji> <Branch 2 keyword>`")
+    ("`<div style='font-size:1.5em'><emoji></div> <BRANCH 2 KEYWORD>`")
       ("`<emoji> <named leaf concept>`")
 ```
 ~~~
@@ -49,28 +49,66 @@ renderers don't ship with — hard syntax error outside a handful of
 environments that specifically register it. Plain `mindmap`, no layout
 override, renders everywhere.
 
-**Shape is the main size lever, but root's emoji gets one exception.**
-Mindmap has no font-size-per-depth setting for node shapes themselves.
-Measuring actual rendered SVG output: a double-paren circle ≈ 140-170px, a
-single-paren rounded box ≈ 170×54, a plain-text leaf smaller still. So
-branch/leaf visual hierarchy comes from shape choice:
+**Shape is the main size lever, but root and level-1 branches get an
+emoji-size exception — mermaid-version-dependent, see the pin note
+below.** Mindmap has no font-size-per-depth setting for node shapes
+themselves. Measuring actual rendered SVG output: a double-paren circle ≈
+140-170px, a single-paren rounded box ≈ 170×54, a plain-text leaf smaller
+still. So branch/leaf visual hierarchy comes from shape choice:
 - Branches: rounded box — `(Title)`.
 - Leaves: plain text, no shape — this is already the smallest, don't add a
   shape just for consistency.
 
-Root is the one place worth a real size boost, verified working: the
-quoted markdown-string form passes raw HTML through (mermaid's markdown-
-string nodes render via `marked`, which doesn't sanitize by default), so
-wrap root's emoji in a sized `<div>` on its own line, then bold the title
-with `<b>` — not markdown `**bold**`, which breaks (renders literal
-asterisks) once raw HTML is already in the same label, confirmed by
-rendering:
+Root and level-1 branches are worth a real emoji size boost, verified
+working: the quoted markdown-string form passes raw HTML through
+(mermaid's markdown-string nodes render via `marked`, which doesn't
+sanitize by default), so wrap the emoji in a sized `<div>`. **Root's title
+text is UPPERCASE too, same Buzan rule as level-1 branches** — the central
+topic is the most important node, so it gets both the biggest emoji and
+capitals, same as a branch just scaled up:
+
 ```
-root(("`<div style='font-size:2.2em;line-height:1.1'>🔥</div><b>Personal Finance</b>`"))
+root(("`<div style='display:flex;flex-direction:column;align-items:center'><div style='font-size:3em;line-height:1.1'>🔥</div><b>PERSONAL FINANCE</b></div>`"))
+    ("`<div style='font-size:1.5em'>🎯</div> GOAL SETTING`")
 ```
-This makes root's emoji large and stacked above the bold title — the most
-visually prominent node, as intended. Keep branches/leaves as plain inline
-`emoji + text` (no div, no size bump) — this treatment is for root only.
+
+Root: bold the uppercase title with `<b>` — not markdown `**bold**`, which
+breaks (renders literal asterisks) once raw HTML is already in the same
+label. A bare block `<div>` alone isn't enough to force the emoji onto its
+own line — mermaid's mindmap node wraps label content in its own flex
+container (row direction), which would put the emoji div and the `<b>`
+title side by side. The fix: wrap emoji-div + title in **your own**
+`<div style='display:flex;flex-direction:column;align-items:center'>` —
+a fresh flex formatting context, so root's emoji (3em, the single biggest
+element on the diagram) always stacks above the bold uppercase title,
+centered. Level-1 branches: div stays inline before the uppercase keyword
+(1.5em, no `<b>`). Leaves stay plain inline `emoji + text`, normal case,
+no div, no size bump.
+
+**⚠️ Version-dependent — this `<div style=...>` pattern only renders
+correctly on mermaid ~11.x+.** Confirmed by rendering the *exact same
+source* through two versions: mermaid 11.15 (fresh install) renders it
+correctly (48px root emoji, properly stacked, screenshotted); mermaid
+**10.2.3** silently mangles it instead — a `<div style=...>` on the root
+node renders the whole label blank (empty circle, no text, no emoji), and
+the identical pattern on a branch node makes that branch disappear
+entirely from the tree (its leaves reparent onto the node above it) —
+reproduced with a side-by-side test matrix, both failures confirmed. Not
+a nesting-depth issue (a single non-nested div broke the branch case
+too) — any `<div style=...>` is unsafe on mermaid <11. If a vault note
+might ever render on an unknown/older mermaid build, `<br/>` + `<b>` are
+the versions-agnostic fallback confirmed safe on both 10.2.3 and 11.x:
+`root(("`🔥<br/><b>PERSONAL FINANCE</b>`"))` — no separate icon-size
+treatment, root distinguished only by shape + position + bold, not
+font-size. **This skill currently targets vim's `:MarkdownPreview` only**
+(per this vault's actual usage — confirmed with the user), whose bundled
+`mermaid.min.js` was upgraded 10.2.3 → 11.15.0 specifically to unblock
+this pattern (old build kept alongside as
+`mermaid.min.js.bak-10.2.3` for rollback). If that plugin ever gets
+reinstalled/updated and silently reverts to its own bundled (older)
+mermaid, or notes start getting viewed somewhere else (Obsidian, GitHub,
+phone), re-verify before trusting this pattern again — switch back to
+the `<br/>`+`<b>` fallback if so.
 
 **Emoji, non-ASCII characters, and hyphens all break plain/unquoted node
 text** in Mermaid versions still common in markdown previewers (they lex
@@ -108,6 +146,12 @@ wording instead.
 **Branch fan-out ≤ ~6 direct children.** More than that (e.g. 11 items in
 one category) crowds nodes until they visually overlap — split into named
 sub-groups instead of one flat list.
+
+**Level-1 branches (root's direct children) are UPPERCASE** — Tony Buzan's
+mindmap convention: main branch keywords in capitals, everything deeper
+(leaves, sub-groups) in normal case. Uppercase the keyword text itself, not
+the emoji: `("`🎯 GOAL SETTING`")`. Root's own title stays normal case (it's
+already visually dominant via the size/bold treatment above).
 
 ## Optional contrast sub-pattern
 
