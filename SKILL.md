@@ -38,9 +38,18 @@ guidance. This file is just the workflow order.
 4. **Node tree**: root = topic. Give an emoji to every branch and every
    leaf that names a distinct concept. Cap direct children per branch at
    ~6, splitting into sub-groups otherwise (reference.md explains why).
+   **Root title AND level-1 branch keyword text are UPPERCASE** (Tony
+   Buzan rule — central topic + main branches get capitals, deeper levels
+   stay normal case).
 5. **Emoji**: one per branch/keyword, placed as the first character(s) of
    that node's label — use the reasoning method + cheat sheet in
-   reference.md rather than picking generic/mismatched ones.
+   reference.md rather than picking generic/mismatched ones. Root and
+   level-1 branch emoji get a size bump (via sized `<div>`, see
+   reference.md) so they stay visually prominent next to the uppercase
+   keyword; leaf emoji stay plain inline size. **This relies on mermaid
+   ~11.x+** — reference.md's version-pin note explains why (this vault's
+   only renderer, vim `:MarkdownPreview`, was upgraded specifically for
+   this) and what to fall back to if that ever changes.
 6. **Assemble**: follow the skeleton in reference.md exactly — no
    `layout: tidy-tree`, root/branch/leaf shape hierarchy, one label per
    source line.
@@ -54,8 +63,13 @@ guidance. This file is just the workflow order.
 ## Before finishing, check
 
 - Emoji on every branch + named leaf; no two siblings share one.
+- Root title and every level-1 branch keyword is UPPERCASE; leaves stay
+  normal case.
 - No branch exceeds ~6 direct children.
 - Every label on one source line, no hyphens/non-ASCII/emoji left unquoted.
 - Root/branch/leaf shape hierarchy intact (circle → round → plain).
 - Palette suits this topic, not copied from another note.
 - No `::icon(...)` anywhere in the output.
+- Root's emoji div nested inside its own flex-column wrapper (stacks
+  above the bold uppercase title); level-1 branch emoji in its own sized
+  div, inline before the uppercase keyword.
